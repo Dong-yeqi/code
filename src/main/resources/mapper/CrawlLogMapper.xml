@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.realestatetracker.mapper.CrawlLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.realestatetracker.entity.CrawlLog">
+        <id column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
+        <result column="task_name" property="taskName"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="success_count" property="successCount"/>
+        <result column="fail_count" property="failCount"/>
+        <result column="status" property="status"/>
+        <result column="message" property="message"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.realestatetracker.entity.CrawlLog">
+        INSERT INTO t_crawl_log
+            (task_id, task_name, start_time, status)
+        VALUES
+            (#{taskId}, #{taskName}, #{startTime}, #{status})
+    </insert>
+
+    <update id="update" parameterType="com.example.realestatetracker.entity.CrawlLog">
+        UPDATE t_crawl_log
+        SET
+            end_time = #{endTime},
+            success_count = #{successCount},
+            fail_count = #{failCount},
+            status = #{status},
+            message = #{message}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ★ 新增：查询全部日志，用于 CrawlLogServiceImpl.listAll() -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+            id,
+            task_id,
+            task_name,
+            start_time,
+            end_time,
+            success_count,
+            fail_count,
+            status,
+            message
+        FROM t_crawl_log
+        ORDER BY id DESC
+    </select>
+
+</mapper>

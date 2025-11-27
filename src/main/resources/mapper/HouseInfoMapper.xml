@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.realestatetracker.mapper.HouseInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.realestatetracker.entity.HouseInfo">
+        <id     column="id"             property="id"/>
+        <result column="source_id"      property="sourceId"/>
+        <result column="source_site"    property="sourceSite"/>
+        <result column="title"          property="title"/>
+        <result column="total_price"    property="totalPrice"/>
+        <result column="unit_price"     property="unitPrice"/>
+        <result column="area"           property="area"/>
+        <result column="layout"         property="layout"/>
+        <result column="floor_info"     property="floorInfo"/>
+        <result column="orientation"    property="orientation"/>
+        <result column="decoration"     property="decoration"/>
+        <result column="community_name" property="communityName"/>
+        <result column="city"           property="city"/>
+        <result column="region"         property="region"/>
+        <result column="address"        property="address"/>
+        <result column="publish_time"   property="publishTime"/>
+        <result column="crawl_time"     property="crawlTime"/>
+        <result column="is_valid"       property="isValid"/>
+        <result column="create_time"    property="createTime"/>
+        <result column="update_time"    property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, source_id, source_site, title, total_price, unit_price, area,
+        layout, floor_info, orientation, decoration, community_name,
+        city, region, address, publish_time, crawl_time, is_valid,
+        create_time, update_time
+    </sql>
+
+    <!-- 插入或更新（按 source_site + source_id 去重） -->
+    <insert id="insertOrUpdateBySource"
+            parameterType="com.example.realestatetracker.entity.HouseInfo">
+        INSERT INTO t_house_info (
+            source_id, source_site, title,
+            total_price, unit_price, area,
+            layout, floor_info, orientation, decoration,
+            community_name, city, region, address,
+            publish_time, crawl_time, is_valid,
+            create_time, update_time
+        ) VALUES (
+                     #{sourceId}, #{sourceSite}, #{title},
+                     #{totalPrice}, #{unitPrice}, #{area},
+                     #{layout}, #{floorInfo}, #{orientation}, #{decoration},
+                     #{communityName}, #{city}, #{region}, #{address},
+                     #{publishTime}, #{crawlTime}, #{isValid},
+                     NOW(), NOW()
+                 )
+            ON DUPLICATE KEY UPDATE
+                                 title        = VALUES(title),
+                                 total_price  = VALUES(total_price),
+                                 unit_price   = VALUES(unit_price),
+                                 area         = VALUES(area),
+                                 layout       = VALUES(layout),
+                                 floor_info   = VALUES(floor_info),
+                                 orientation  = VALUES(orientation),
+                                 decoration   = VALUES(decoration),
+                                 community_name = VALUES(community_name),
+                                 region       = VALUES(region),
+                                 address      = VALUES(address),
+                                 publish_time = VALUES(publish_time),
+                                 crawl_time   = VALUES(crawl_time),
+                                 is_valid     = VALUES(is_valid),
+                                 update_time  = NOW()
+    </insert>
+
+    <!-- 概览：平均单价、房源数量、最新采集时间 -->
+    <select id="selectOverview" resultType="map">
+        SELECT
+            AVG(unit_price) AS avg_price,
+            COUNT(*)        AS house_count,
+            MAX(crawl_time) AS last_update_time
+        FROM t_house_info
+        WHERE city = #{city}
+          AND is_valid = 1
+    </select>
+
+    <!-- 价格趋势（按天平均单价） -->
+    <select id="selectPriceTrend" resultType="map">
+        SELECT
+        DATE(publish_time) AS day,
+        AVG(unit_price)    AS avg_price
+        FROM t_house_info
+        WHERE city = #{city}
+        AND is_valid = 1
+        AND publish_time >= #{startTime}
+        <if test="region != null and region != ''">
+            AND region = #{region}
+        </if>
+        GROUP BY DATE(publish_time)
+        ORDER BY DATE(publish_time)
+    </select>
+
+    <!-- 区域对比：各区域平均单价 -->
+    <select id="selectRegionCompare" resultType="map">
+        SELECT
+            region           AS region,
+            AVG(unit_price)  AS value
+        FROM t_house_info
+        WHERE city = #{city}
+          AND is_valid = 1
+        GROUP BY region
+        ORDER BY value DESC
+    </select>
+
+    <!-- 面积结构（0-60, 60-90, 90-120, 120+） -->
+    <select id="selectAreaStructure" resultType="map">
+        SELECT CASE
+                   WHEN area &lt;= 60 THEN '0-60m2'
+                   WHEN area &gt; 60 AND area &lt;= 90 THEN '60-90m2'
+                   WHEN area &gt; 90 AND area &lt;= 120 THEN '90-120m2'
+                   ELSE '120㎡以上'
+                   END  AS range_label,
+               COUNT(*) AS cnt
+        FROM t_house_info
+        WHERE city = #{city}
+          AND is_valid = 1
+        GROUP BY range_label
+        ORDER BY range_label
+    </select>
+
+    <!-- 户型结构（top10） -->
+    <select id="selectLayoutStructure" resultType="map">
+        SELECT
+            layout AS layout_label,
+            COUNT(*) AS cnt
+        FROM t_house_info
+        WHERE city = #{city}
+          AND is_valid = 1
+        GROUP BY layout
+        ORDER BY cnt DESC
+            LIMIT 10
+    </select>
+</mapper>
