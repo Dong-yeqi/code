@@ -1,5 +1,6 @@
 package com.example.realestatetracker.crawler.impl;
 
+import com.example.realestatetracker.config.CityCodeConfig;
 import com.example.realestatetracker.crawler.HouseCrawler;
 import com.example.realestatetracker.entity.HouseInfo;
 import com.example.realestatetracker.mapper.HouseInfoMapper;
@@ -21,6 +22,9 @@ public class JiwuHouseCrawler implements HouseCrawler {
     @Resource
     private HouseInfoMapper houseInfoMapper;
 
+    @Resource
+    private CityCodeConfig cityCodeConfig;
+
     @Override
     public boolean support(String site) {
         return "jiwu".equalsIgnoreCase(site);
@@ -30,7 +34,7 @@ public class JiwuHouseCrawler implements HouseCrawler {
     public int crawlCity(String city, String region, int maxPage) {
         int count = 0;
 
-        String cityCode = cityToCode(city);
+        String cityCode = cityCodeConfig.getJiwuCode(city);
         if (cityCode == null) {
             log.error("[JiwuCrawler] 不支持的城市: {}", city);
             return 0;
@@ -121,13 +125,4 @@ public class JiwuHouseCrawler implements HouseCrawler {
         return new BigDecimal(txt);
     }
 
-    private String cityToCode(String city) {
-        return switch (city) {
-            case "成都" -> "cd";
-            case "重庆" -> "cq";
-            case "北京" -> "bj";
-            case "上海" -> "sh";
-            default -> null;
-        };
-    }
 }

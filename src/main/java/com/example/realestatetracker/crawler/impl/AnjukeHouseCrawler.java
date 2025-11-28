@@ -1,5 +1,6 @@
 package com.example.realestatetracker.crawler.impl;
 
+import com.example.realestatetracker.config.CityCodeConfig;
 import com.example.realestatetracker.crawler.HouseCrawler;
 import com.example.realestatetracker.entity.HouseInfo;
 import com.example.realestatetracker.mapper.HouseInfoMapper;
@@ -19,6 +20,9 @@ public class AnjukeHouseCrawler implements HouseCrawler {
     @Resource
     private HouseInfoMapper houseInfoMapper;
 
+    @Resource
+    private CityCodeConfig cityCodeConfig;
+
     @Override
     public boolean support(String site) {
         return "anjuke".equalsIgnoreCase(site);
@@ -28,7 +32,7 @@ public class AnjukeHouseCrawler implements HouseCrawler {
     public int crawlCity(String city, String region, int maxPage) {
         int total = 0;
 
-        String domain = cityDomain(city);
+        String domain = cityCodeConfig.getAnjukeCode(city);
         if (domain == null) {
             log.error("不支持城市: {}", city);
             return 0;
@@ -141,7 +145,8 @@ public class AnjukeHouseCrawler implements HouseCrawler {
                         total++;
                         pageCount++;
 
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
+                        log.warn("解析房源数据失败，跳过该条记录: {}", e.getMessage());
                     }
                 }
 
@@ -202,15 +207,4 @@ public class AnjukeHouseCrawler implements HouseCrawler {
         }
     }
 
-    private String cityDomain(String city) {
-        return switch (city) {
-            case "北京" -> "beijing";
-            case "上海" -> "shanghai";
-            case "广州" -> "guangzhou";
-            case "深圳" -> "shenzhen";
-            case "成都" -> "chengdu";
-            case "重庆" -> "chongqing";
-            default -> null;
-        };
-    }
 }

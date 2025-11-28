@@ -1,5 +1,6 @@
 package com.example.realestatetracker.crawler.impl;
 
+import com.example.realestatetracker.config.CityCodeConfig;
 import com.example.realestatetracker.crawler.HouseCrawler;
 import com.example.realestatetracker.entity.HouseInfo;
 import com.example.realestatetracker.mapper.HouseInfoMapper;
@@ -19,6 +20,9 @@ public class BeikeHouseCrawler implements HouseCrawler {
     @Resource
     private HouseInfoMapper houseInfoMapper;
 
+    @Resource
+    private CityCodeConfig cityCodeConfig;
+
     @Override
     public boolean support(String site) {
         return "beike".equalsIgnoreCase(site);
@@ -28,7 +32,7 @@ public class BeikeHouseCrawler implements HouseCrawler {
     public int crawlCity(String city, String region, int maxPage) {
         int total = 0;
 
-        String cityCode = cityToCode(city);
+        String cityCode = cityCodeConfig.getBeikeCode(city);
         if (cityCode == null) {
             log.error("不支持城市：{}", city);
             return 0;
@@ -142,7 +146,9 @@ public class BeikeHouseCrawler implements HouseCrawler {
                         total++;
                         pageCount++;
 
-                    } catch (Exception ignore) {}
+                    } catch (Exception e) {
+                        log.warn("解析房源数据失败，跳过该条记录: {}", e.getMessage());
+                    }
                 }
 
                 log.info("成功解析 {} 条房源（第 {} 页）", pageCount, p);
@@ -202,15 +208,4 @@ public class BeikeHouseCrawler implements HouseCrawler {
         }
     }
 
-    private String cityToCode(String city) {
-        return switch (city) {
-            case "北京" -> "bj";
-            case "上海" -> "sh";
-            case "广州" -> "gz";
-            case "深圳" -> "sz";
-            case "成都" -> "cd";
-            case "重庆" -> "cq";
-            default -> null;
-        };
-    }
 }
