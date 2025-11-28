@@ -28,23 +28,23 @@ crawler:
   city-code:
     # 贝壳网城市代码映射
     beike:
-      北京: bj
-      上海: sh
-      广州: gz
-      深圳: sz
-      成都: cd
-      重庆: cq
+      '北京': bj
+      '上海': sh
+      '广州': gz
+      '深圳': sz
+      '成都': cd
+      '重庆': cq
     # 安居客城市代码映射
     anjuke:
-      北京: beijing
-      上海: shanghai
-      广州: guangzhou
-      深圳: shenzhen
-      成都: chengdu
-      重庆: chongqing
+      '北京': beijing
+      '上海': shanghai
+      '广州': guangzhou
+      '深圳': shenzhen
+      '成都': chengdu
+      '重庆': chongqing
     # 吉屋网城市代码映射
     jiwu:
-      成都: cd
-      重庆: cq
-      北京: bj
-      上海: sh
+      '成都': cd
+      '重庆': cq
+      '北京': bj
+      '上海': sh
