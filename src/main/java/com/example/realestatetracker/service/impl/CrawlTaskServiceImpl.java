@@ -51,6 +51,9 @@ public class CrawlTaskServiceImpl implements CrawlTaskService {
         if (task.getEnabled() == null) {
             task.setEnabled(1);
         }
+        if (!StringUtils.hasText(task.getListUrlTemplate())) {
+            task.setListUrlTemplate("");
+        }
 
         if (task.getId() == null) {
             crawlTaskMapper.insert(task);
